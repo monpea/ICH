@@ -80,7 +80,7 @@ html.suck #gate .frame{animation:fadeo 1.6s ease forwards}
 .hole{position:fixed;width:140px;height:140px;margin:-70px 0 0 -70px;border-radius:50%;transform:scale(.2);opacity:0;filter:blur(22px);
   background:radial-gradient(circle,#000 0%,#000 16%,#08030699 26%,#050203f2 30%,#2a0a14cc 42%,#7a1a2a66 54%,#3a2a7a22 64%,#0000 74%);
   transition:transform 2.8s cubic-bezier(.55,0,.3,1),opacity 1.2s ease}
-#void.on .hole.go{transform:scale(34);opacity:1}
+#void.on .hole.go{transform:scale(48);opacity:1}
 .vline{position:relative;max-width:30em;word-break:keep-all;text-wrap:balance;margin:0;padding:0 24px;text-align:center;font-size:clamp(20px,2.8vw,30px);line-height:1.6;color:#efe3e6;
   text-shadow:0 0 16px #c2353a99,0 0 2px #fff4;opacity:0;filter:blur(8px);transform:translateY(8px);transition:opacity 1.2s ease,filter 1.2s ease,transform 1.2s ease}
 .vline.show{opacity:1;filter:none;transform:none}
@@ -1129,7 +1129,7 @@ const enter=async()=>{if(busy)return;busy=true;playBgm();
   vd.classList.add('on');html.classList.add('suck');
   requestAnimationFrame(()=>requestAnimationFrame(()=>hole.classList.add('go')));
   await wait(reduce?150:2500);vd.classList.add('dark');
-  await wait(reduce?50:700);html.classList.add('gone');
+  await wait(reduce?50:1300);html.classList.add('gone'); // 배경이 완전히 검어진 뒤에 타이틀을 걷는다
   for(const t of LINES){if(skipped)break;vl.textContent=t;await wait(reduce?50:300);vl.classList.add('show');
     await wait(1100+t.length*70);if(skipped)break;vl.classList.remove('show');await wait(1000)}
   vl.classList.remove('show');finish()};
