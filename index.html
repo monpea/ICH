@@ -283,6 +283,11 @@ html.umopen,html.umopen body{overflow:hidden}
 .uni .ph img{position:absolute;inset:10px 6px 6px;width:calc(100% - 12px);height:calc(100% - 16px);object-fit:contain;display:block}
 .uni .bd{padding:10px 12px 12px}.uni b{display:block;font-size:15px}.uni .cz{font-size:12px}
 @media(max-width:600px){.unis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.oside{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 22px}
+.oside button{min-height:40px;padding:0 18px;border-radius:30px;border:1px solid #ffffff2e;background:none;color:var(--mute);font:inherit;font-size:14px;cursor:pointer;transition:.2s}
+.oside button[aria-checked="true"]{border-color:#e8eaff99;color:#fff;background:#ffffff14}
+.oside button.o[aria-checked="true"]{border-color:#8fcbff;background:#8fcbff22}
+.oside button.t[aria-checked="true"]{border-color:#ff5a66;background:#ff5a6622}
 .obtns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}.btn.ghost{background:none;border:1px solid #ffffff40;color:var(--ink,#e8eaff)}
 .dept{padding:14px;border-radius:10px;background:var(--night2);border:1px solid var(--line)}
 .dept b{display:block;font-size:17px}
@@ -730,6 +735,11 @@ footer .cz{color:#fff;font-family:"Warhaven",Cinzel,serif;font-size:20px;display
 <!-- 성좌 점지 -->
 <section class="band view" id="oracle"><div class="wrap">
   <div class="sh"><h2>성좌 점지</h2><span class="en">Oracle of Stars</span></div>
+  <div class="oside" role="radiogroup" aria-label="점지 받을 진영">
+    <button type="button" role="radio" data-side="r" aria-checked="true">랜덤</button>
+    <button type="button" role="radio" data-side="o" aria-checked="false" class="o">올림포스</button>
+    <button type="button" role="radio" data-side="t" aria-checked="false" class="t">티타네스</button>
+  </div>
   <div class="orc">
     <div class="altar"><svg id="altar" viewBox="-200 -200 400 400" aria-hidden="true"></svg></div>
     <div class="step" id="oStep" aria-live="polite"></div>
@@ -748,7 +758,7 @@ footer .cz{color:#fff;font-family:"Warhaven",Cinzel,serif;font-size:20px;display
 
 <script>
 {
-const $=s=>document.querySelector(s);
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 /* ── 데이터 (나중에 여기만 채우면 됨) ── */
@@ -784,7 +794,7 @@ const beasts=[ /* 약한 순 */
   {r:'Ther',n:'테르',k:'야수'},
   {r:'Teras',n:'테라스',k:'괴물'},
   {r:'Pelor',n:'펠로르',k:'재앙'},
-  {r:'Typhon',n:'티폰'}
+  {r:'Typhon',n:'티폰',k:'최상위급'}
 ];
 const timeline=[ /* t:true = 티타네스·크로노스 쪽 사건 / q: 예언 문구 / w: 희미한 문장 */
   {a:'신화 시대',h:'티타노마키아',p:'올림포스의 신들과 티탄의 전쟁. 패배한 크로노스와 티탄들은 타르타로스에 갇힌다.'},
@@ -1023,7 +1033,8 @@ pick(tabs[0]);
    <g class="res">${res?`${dots(res.e,col)}<text text-anchor="middle" y="10" fill="#fff" font-size="${res.e.length>9?30:38}" font-family="Cinzel,serif" letter-spacing="3" style="filter:drop-shadow(0 0 10px ${col})">${esc(res.e.toUpperCase())}</text>`
      :`<text text-anchor="middle" y="14" fill="#aaa3b2" font-size="40" font-family="Cinzel,serif">?</text>`}</g>`};
  const intro=()=>{altar(null);box.innerHTML=`<h3>별이 너를 보고 있다</h3><p>성좌는 스스로 각인할 인간을 고른다. 손을 뻗으면, 너를 택한 별 하나가 내려올 것이다.</p><button class="btn" id="oGo" type="button">성좌 점지 받기</button>`;$('#oGo').onclick=draw};
- const draw=()=>{if(busy)return;busy=true;const side=Math.random()<.5?'o':'t';let pool=POOL.filter(x=>x.s===side&&x!==last);const r=pool[Math.floor(Math.random()*pool.length)];last=r;
+ let mode='r';$$('.oside button').forEach(b=>b.onclick=()=>{mode=b.dataset.side;$$('.oside button').forEach(x=>x.setAttribute('aria-checked',x===b))});
+ const draw=()=>{if(busy)return;busy=true;const side=mode==='r'?(Math.random()<.5?'o':'t'):mode;let pool=POOL.filter(x=>x.s===side&&x!==last);const r=pool[Math.floor(Math.random()*pool.length)];last=r;
    altar(null,true);box.innerHTML=`<h3>별을 읽는 중…</h3><p>밤하늘의 성좌들이 너를 내려다본다.</p>`;
    setTimeout(()=>{busy=false;show(r)},reduce?50:1600)};
  const show=r=>{altar(r);const col=r.s==='t'?'var(--titan)':'var(--olym)';
@@ -1495,8 +1506,22 @@ function panel({ img, ring, name, stage, line, body = '', btn, on, sub, onSub, l
   if (late) setTimeout(() => { const b = ov.querySelector('.btns'); if (b) b.hidden = false; }, late);
 }
 
+// 팀 주머니: 가능한 20가지 조합을 섞어 두고 하나씩 꺼낸다.
+// 20판 안에서는 같은 조합이 다시 나오지 않고, 다 꺼내면 새로 섞는다. (새로고침해도 이어진다)
+const ALL_TEAMS = (() => { const ids = HEROES.map(h => h.id), out = [];
+  for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) for (let k = j + 1; k < ids.length; k++) out.push([ids[i], ids[j], ids[k]]);
+  return out; })();
+let bag = [];
+try { bag = JSON.parse(localStorage.getItem('ichor-teams') || '[]').filter(t => ALL_TEAMS.some(a => a.join() === t.join())); } catch (e) {}
+function nextTeam() {
+  if (!bag.length) { const last = S && S.ids ? [...S.ids].sort().join() : ''; bag = shuffle(ALL_TEAMS);
+    if (bag.length > 1 && bag[bag.length - 1].join() === last) bag.unshift(bag.pop()); }
+  const t = bag.pop(); try { localStorage.setItem('ichor-teams', JSON.stringify(bag)); } catch (e) {}
+  return t;
+}
+
 function start(ids) {
-  const team = ids ? HEROES.filter(h => ids.includes(h.id)) : shuffle(HEROES).slice(0, 3);
+  const team = ids ? HEROES.filter(h => ids.includes(h.id)) : shuffle(nextTeam().map(id => HEROES.find(h => h.id === id)));
   S = { ids: team.map(h => h.id), party: team.map(h => ({ ...h, max: h.hp, shield: 0 })), boss: { hp: BOSS.hp, turn: 0 },
     turn: 1, mana: 3, maxMana: 3, hand: [], abyss: 0, mark: 0, guard: false, lastAtk: null, over: false };
   busy = false; render();
